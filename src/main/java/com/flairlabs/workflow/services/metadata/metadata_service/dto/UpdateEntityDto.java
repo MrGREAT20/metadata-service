@@ -1,6 +1,6 @@
 package com.flairlabs.workflow.services.metadata.metadata_service.dto;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateEnitityDto {
+public class UpdateEntityDto {
 
     @JsonProperty("entity_id")
     private String entityId;
@@ -23,6 +23,8 @@ public class UpdateEnitityDto {
     private Optional<String> updatedEnityName;
 
     @JsonProperty("fields_to_update")
-    private HashMap<String, UpdateFieldDto> fieldsToUpdate; // {OldFieldName, NewFieldProperties}
+    private List<UpdateFieldDto> fieldsToUpdate;
 
+    @JsonProperty("fields_to_add")
+    private List<FieldRequestDto> fieldsToAdd;
 }

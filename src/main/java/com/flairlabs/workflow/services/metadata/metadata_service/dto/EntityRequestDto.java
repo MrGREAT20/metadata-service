@@ -14,6 +14,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EntityRequestDto {
+
+
     @JsonProperty("entity_name")
     private String entityName;
 
@@ -23,6 +25,4 @@ public class EntityRequestDto {
     @JsonProperty("fields")
     private List<FieldRequestDto> fields;
 
-    @JsonProperty("")
-    private EntityType entityType;
 }

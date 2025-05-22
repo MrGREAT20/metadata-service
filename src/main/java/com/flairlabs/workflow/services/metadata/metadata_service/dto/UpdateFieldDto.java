@@ -22,13 +22,13 @@ public class UpdateFieldDto {
     @JsonProperty("field_name")
     private Optional<String> changeFieldName;
 
-    @JsonProperty("changeField_data_type")
-    private Optional<FieldDataType> changeFieldDataType;
+//    @JsonProperty("changeField_data_type")
+//    private Optional<FieldDataType> changeFieldDataType;
 
     @JsonProperty("change_max_length")
     private Optional<Integer> changeMaxLength;
 
     @JsonProperty("change_default_value")
-    private Optional<Integer> changeDefaultValue;
+    private Optional<Object> changeDefaultValue;
 
 }
