@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <!-- create schema -->
+    <changeSet id="0-create-master-schema" author="raj">
+        <sql> CREATE SCHEMA IF NOT EXISTS master; </sql>
+    </changeSet>
+
+    <!-- ChangeSet for creating entity_definition table -->
+    <changeSet id="1-create-entity-definition" author="raj">
+        <createTable tableName="entity_definition" schemaName="master">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="TEXT" />
+            <column name="tenant_id" type="VARCHAR(255)" />
+            <column name="created_at" type="TIMESTAMP" />
+            <column name="updated_at" type="TIMESTAMP" />
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet for creating field_definition table -->
+    <changeSet id="2-create-field-definition" author="raj">
+        <createTable tableName="field_definition" schemaName="master">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="entity_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="field_data_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="field_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="required" type="BOOLEAN" />
+            <column name="max_length" type="INT" />
+            <column name="default_value" type="TEXT" />
+            <column name="reference_entity_id" type="VARCHAR(255)" />
+            <column name="reference_field_id" type="VARCHAR(255)" />
+            <column name="tenant_id" type="VARCHAR(255)" />
+            <column name="created_at" type="TIMESTAMP" />
+            <column name="updated_at" type="TIMESTAMP" />
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="field_definition"
+            schemaName="master"
+            columnNames="entity_id, name"
+            constraintName="uk_field_entity_name" />
+    </changeSet>
+
+    <!-- Foreign key constraint: field_definition.entity_id -> entity_definition.id -->
+    <changeSet id="3-add-fk-field-to-entity" author="raj">
+        <addForeignKeyConstraint
+            baseTableName="field_definition"
+            baseTableSchemaName="master"
+            baseColumnNames="entity_id"
+            referencedTableName="entity_definition"
+            referencedTableSchemaName="master"
+            referencedColumnNames="id"
+            constraintName="fk_field_entity" />
+    </changeSet>
+
+</databaseChangeLog>
