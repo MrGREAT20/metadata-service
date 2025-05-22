@@ -3,6 +3,7 @@ package com.flairlabs.workflow.services.metadata.metadata_service.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.EntityType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,6 @@ public class EntityRequestDto {
     @JsonProperty("fields")
     private List<FieldRequestDto> fields;
 
-    @JsonProperty("")
+    @JsonProperty("entity_type")
     private EntityType entityType;
 }
