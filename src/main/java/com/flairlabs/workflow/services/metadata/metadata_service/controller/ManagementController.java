@@ -2,8 +2,11 @@ package com.flairlabs.workflow.services.metadata.metadata_service.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.flairlabs.workflow.services.metadata.metadata_service.services.ObjectService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,19 +26,22 @@ import com.flairlabs.workflow.services.metadata.metadata_service.dto.EntitySumma
 @RequestMapping("/api/management")
 public class ManagementController {
 
+    @Autowired
+    ObjectService objectService;
+
     @GetMapping("/object")
     private ResponseEntity<List<EntitySummaryDto>> getAllTables(
-            @RequestParam(required = false, name = "entity_name") String entityName,
-            @RequestParam(required = false, name = "entity_id") String entityId) {
-        List<EntitySummaryDto> result = new ArrayList<>();
+            @RequestParam(required = false, name = "entity_name") Optional<String> entityName,
+            @RequestParam(required = false, name = "entity_id") Optional<String> entityId) {
+        List<EntitySummaryDto> result = objectService.getEntitySummary(entityId, entityName);
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/object")
-    private ResponseEntity<EntitySummaryDto> createOneTable(@RequestBody EntityRequestDto requestDto) {
+    private ResponseEntity<EntitySummaryDto> createOneTable(@RequestBody EntityRequestDto requestDto) throws Exception {
         // 1. Schema Validation Check
         // 2. Create Summary Obj and return
-        EntitySummaryDto result = new EntitySummaryDto();
+        EntitySummaryDto result = objectService.createEntityDefinition(requestDto);
         return ResponseEntity.ok(result);
     }
 

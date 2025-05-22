@@ -15,6 +15,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EntityRequestDto {
+
+
     @JsonProperty("entity_name")
     private String entityName;
 

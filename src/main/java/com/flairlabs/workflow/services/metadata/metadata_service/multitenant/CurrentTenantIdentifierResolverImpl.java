@@ -18,12 +18,7 @@ public class CurrentTenantIdentifierResolverImpl
 
     @Override
     public String resolveCurrentTenantIdentifier() {
-        String tenantId = TenantContext.getTenantIdentifier();
-        if (tenantId != null) {
-            return tenantId;
-        }
-        // return multitenancyProperties.getDefaultTenantId();
-        return "default";
+        return TenantContext.getTenantIdentifier() == null ? "default": TenantContext.getTenantIdentifier();
     }
 
     @Override
