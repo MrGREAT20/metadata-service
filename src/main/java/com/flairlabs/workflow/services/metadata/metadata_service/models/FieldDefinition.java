@@ -54,6 +54,9 @@ public class FieldDefinition extends TenantBaseModel {
     @Column(name = "required")
     private Boolean required;
 
+    @Column(name = "auto_generate")
+    private Boolean autoGenerate;
+
     @Column(name = "max_length")
     private Integer maxLength;
 

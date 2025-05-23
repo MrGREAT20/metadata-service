@@ -29,6 +29,9 @@ public class FieldRequestDto {
     @JsonProperty("required")
     private Optional<Boolean> required;
 
+    @JsonProperty("auto_generate")
+    private Optional<Boolean> autoGenerate;
+
     @JsonProperty("max_length")
     private Optional<Integer> maxLength;
 

@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Optional;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -29,6 +31,9 @@ public class FieldSummaryDto {
 
     @JsonProperty("max_length")
     private Integer maxLength;
+
+    @JsonProperty("auto_generate")
+    private Boolean autoGenerate;
 
     // Only for FOREIGN_KEY
     @JsonProperty("reference_entity_id")

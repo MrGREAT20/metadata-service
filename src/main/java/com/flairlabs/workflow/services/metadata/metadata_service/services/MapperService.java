@@ -55,6 +55,7 @@ public class MapperService {
                 .required(fieldDto.getRequired().orElse(false))
                 .maxLength(fieldDto.getMaxLength().orElse(null))
                 .defaultValue(fieldDto.getDefaultValue().orElse(null))
+                .autoGenerate(fieldDto.getAutoGenerate().orElse(false))
                 .referenceEntityId(fieldDto.getReferenceEntityId().orElse(null))
                 .referenceFieldId(fieldDto.getReferenceFieldId().orElse(null))
                 .build();
@@ -67,6 +68,7 @@ public class MapperService {
                 fieldDefinition.getFieldDataType(),
                 fieldDefinition.getFieldType(),
                 fieldDefinition.getMaxLength(),
+                fieldDefinition.getAutoGenerate(),
                 fieldDefinition.getReferenceEntityId(),
                 fieldDefinition.getReferenceFieldId());
     }
