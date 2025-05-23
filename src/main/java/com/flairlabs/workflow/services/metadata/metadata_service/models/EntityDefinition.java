@@ -10,10 +10,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.flairlabs.workflow.services.metadata.metadata_service.multitenant.TenantBaseModel;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.EntityType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -44,6 +47,10 @@ public class EntityDefinition extends TenantBaseModel {
     @OneToMany(mappedBy = "entity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<FieldDefinition> fields = new ArrayList<>();
+
+    @Column(name = "entity_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EntityType entityType;
 
     @CreationTimestamp
     @Column(name = "created_at")

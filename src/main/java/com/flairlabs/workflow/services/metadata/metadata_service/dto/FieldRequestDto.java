@@ -3,8 +3,8 @@ package com.flairlabs.workflow.services.metadata.metadata_service.dto;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition.FieldDataType;
-import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition.FieldType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldDataType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

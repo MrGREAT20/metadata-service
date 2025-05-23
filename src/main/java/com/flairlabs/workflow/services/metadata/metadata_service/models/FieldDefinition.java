@@ -2,6 +2,8 @@ package com.flairlabs.workflow.services.metadata.metadata_service.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flairlabs.workflow.services.metadata.metadata_service.multitenant.TenantBaseModel;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldDataType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldType;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -78,23 +80,6 @@ public class FieldDefinition extends TenantBaseModel {
     @Column(name = "reference_field_id")
     private String referenceFieldId;
 
-    public enum FieldDataType {
-        TEXT,
-        NUMBER,
-        BOOLEAN,
-        DATE,
-        DATETIME,
-        EMAIL,
-        PHONE,
-        URL,
-        DECIMAL,
-        UUID
-    }
-
-    public enum FieldType {
-        COLUMN,
-        FOREIGN_KEY,
-        PRIMARY_KEY
-    }
+   
 
 }

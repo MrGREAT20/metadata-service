@@ -7,6 +7,8 @@ import com.flairlabs.workflow.services.metadata.metadata_service.models.EntityDe
 import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition;
 import com.flairlabs.workflow.services.metadata.metadata_service.repositories.IEntityDefinitionRepository;
 import com.flairlabs.workflow.services.metadata.metadata_service.repositories.IFieldDefinitionRepository;
+import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +38,11 @@ public class ObjectService {
             throw new Exception("Duplicate Fields Present");
         }
 
-        if(entityRequestDto.getFields().stream().noneMatch(fd -> fd.getFieldType().equals(FieldDefinition.FieldType.PRIMARY_KEY))){
+        if(entityRequestDto.getFields().stream().noneMatch(fd -> fd.getFieldType().equals(FieldType.PRIMARY_KEY))){
             throw new Exception("Primary Key Field is Required");
         };
 
-        List<FieldRequestDto> foreignKeys = entityRequestDto.getFields().stream().filter(fd -> fd.getFieldType().equals(FieldDefinition.FieldType.FOREIGN_KEY)).toList();
+        List<FieldRequestDto> foreignKeys = entityRequestDto.getFields().stream().filter(fd -> fd.getFieldType().equals(FieldType.FOREIGN_KEY)).toList();
 
         if(!foreignKeys.isEmpty() && foreignKeys.stream().filter(fd -> fd.getReferenceEntityId().isPresent() && fd.getReferenceFieldId().isPresent()).toList().size() < foreignKeys.size()){
             throw new Exception("Foreign Keys Configuration is Invalid");
