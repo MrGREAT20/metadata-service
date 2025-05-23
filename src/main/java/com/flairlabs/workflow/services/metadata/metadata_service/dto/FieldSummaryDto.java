@@ -1,15 +1,13 @@
 package com.flairlabs.workflow.services.metadata.metadata_service.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldDataType;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldDataType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Optional;
 
 @Getter
 @Setter

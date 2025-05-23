@@ -4,22 +4,18 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <!-- create schema -->
-    <changeSet id="0-create-master-schema" author="raj">
-        <sql> CREATE SCHEMA IF NOT EXISTS master; </sql>
-    </changeSet>
-
     <!-- ChangeSet for creating entity_definition table -->
     <changeSet id="1-create-entity-definition" author="raj">
-        <createTable tableName="entity_definition" schemaName="master">
+        <createTable tableName="entity_definition" schemaName="public">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false" />
             </column>
             <column name="name" type="VARCHAR(255)">
-                <constraints nullable="false" unique="true" />
+                <constraints nullable="false"/>
             </column>
             <column name="description" type="TEXT" />
             <column name="tenant_id" type="VARCHAR(255)" />
+            <column name="entity_type" type="VARCHAR(255)" />
             <column name="created_at" type="TIMESTAMP" />
             <column name="updated_at" type="TIMESTAMP" />
         </createTable>
@@ -27,7 +23,7 @@
 
     <!-- ChangeSet for creating field_definition table -->
     <changeSet id="2-create-field-definition" author="raj">
-        <createTable tableName="field_definition" schemaName="master">
+        <createTable tableName="field_definition" schemaName="public">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false" />
             </column>
@@ -49,13 +45,14 @@
             <column name="reference_entity_id" type="VARCHAR(255)" />
             <column name="reference_field_id" type="VARCHAR(255)" />
             <column name="tenant_id" type="VARCHAR(255)" />
+            <column name="auto_generate" type="BOOLEAN"/>
             <column name="created_at" type="TIMESTAMP" />
             <column name="updated_at" type="TIMESTAMP" />
         </createTable>
 
         <addUniqueConstraint
             tableName="field_definition"
-            schemaName="master"
+            schemaName="public"
             columnNames="entity_id, name"
             constraintName="uk_field_entity_name" />
     </changeSet>
@@ -64,10 +61,10 @@
     <changeSet id="3-add-fk-field-to-entity" author="raj">
         <addForeignKeyConstraint
             baseTableName="field_definition"
-            baseTableSchemaName="master"
+            baseTableSchemaName="public"
             baseColumnNames="entity_id"
             referencedTableName="entity_definition"
-            referencedTableSchemaName="master"
+            referencedTableSchemaName="public"
             referencedColumnNames="id"
             constraintName="fk_field_entity" />
     </changeSet>

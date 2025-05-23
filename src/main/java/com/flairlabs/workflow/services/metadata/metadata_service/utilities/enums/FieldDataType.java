@@ -1,4 +1,4 @@
-package com.flairlabs.workflow.services.metadata.metadata_service.utils;
+package com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums;
 
 public enum FieldDataType {
 

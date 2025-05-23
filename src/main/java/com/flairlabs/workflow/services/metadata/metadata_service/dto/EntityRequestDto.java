@@ -3,7 +3,7 @@ package com.flairlabs.workflow.services.metadata.metadata_service.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.EntityType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.EntityType;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

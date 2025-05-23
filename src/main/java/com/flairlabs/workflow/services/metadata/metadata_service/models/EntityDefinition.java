@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.flairlabs.workflow.services.metadata.metadata_service.multitenant.TenantBaseModel;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.EntityType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.EntityType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -25,7 +25,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "entity_definition", schema = "master")
+@Table(name = "entity_definition", schema = "public")
 @Getter
 @Setter
 @Builder
@@ -38,7 +38,7 @@ public class EntityDefinition extends TenantBaseModel {
     @Column(columnDefinition = "uuid", name = "id")
     private UUID entityId;
 
-    @Column(nullable = false, name = "name", unique = true)
+    @Column(nullable = false, name = "name")
     private String name;
 
     @Column(name = "description")

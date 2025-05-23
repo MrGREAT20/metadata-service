@@ -2,8 +2,8 @@ package com.flairlabs.workflow.services.metadata.metadata_service.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.flairlabs.workflow.services.metadata.metadata_service.multitenant.TenantBaseModel;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldDataType;
-import com.flairlabs.workflow.services.metadata.metadata_service.utils.FieldType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldDataType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.UUID;
                 "entity_id",
                 "name"
         })
-}, schema = "master")
+}, schema = "public")
 @Getter
 @Setter
 @Builder

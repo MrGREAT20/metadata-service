@@ -9,6 +9,7 @@ import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDef
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +20,7 @@ public class MapperService {
         EntityDefinition entityDefinition = EntityDefinition.builder()
                 .name(entityRequestDto.getEntityName())
                 .description(entityRequestDto.getDescription())
+                .entityType(entityRequestDto.getEntityType())
                 .build();
 
         if (entityRequestDto.getFields() != null) {
@@ -40,7 +42,8 @@ public class MapperService {
         return new EntitySummaryDto(
                 entityDefinition.getName(),
                 entityDefinition.getEntityId().toString(),
-                fieldSummaries
+                fieldSummaries,
+                entityDefinition.getEntityType()
         );
     }
 
@@ -52,12 +55,12 @@ public class MapperService {
                 .name(fieldDto.getFieldName())
                 .fieldDataType(fieldDto.getFieldDataType())
                 .fieldType(fieldDto.getFieldType())
-                .required(fieldDto.getRequired().orElse(false))
-                .maxLength(fieldDto.getMaxLength().orElse(null))
-                .defaultValue(fieldDto.getDefaultValue().orElse(null))
-                .autoGenerate(fieldDto.getAutoGenerate().orElse(false))
-                .referenceEntityId(fieldDto.getReferenceEntityId().orElse(null))
-                .referenceFieldId(fieldDto.getReferenceFieldId().orElse(null))
+                .required(fieldDto.getRequired())
+                .maxLength(fieldDto.getMaxLength())
+                .defaultValue(fieldDto.getDefaultValue())
+                .autoGenerate(fieldDto.getAutoGenerate())
+                .referenceEntityId(fieldDto.getReferenceEntityId())
+                .referenceFieldId(fieldDto.getReferenceFieldId())
                 .build();
     }
 

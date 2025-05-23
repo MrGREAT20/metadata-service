@@ -2,149 +2,139 @@ package com.flairlabs.workflow.services.metadata.metadata_service.services;
 
 import com.flairlabs.workflow.services.metadata.metadata_service.models.EntityDefinition;
 import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition;
+import com.flairlabs.workflow.services.metadata.metadata_service.models.RuntimeChangelog;
+import com.flairlabs.workflow.services.metadata.metadata_service.repositories.IRuntimeChangelogRepository;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.LiquibaseUtility;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldDataType;
+import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
+import liquibase.Contexts;
+import liquibase.LabelExpression;
+import liquibase.Liquibase;
 import liquibase.change.ColumnConfig;
 import liquibase.change.ConstraintsConfig;
 import liquibase.change.core.CreateTableChange;
 import liquibase.change.core.RawSQLChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.statement.DatabaseFunction;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class LiquiBaseService {
 
+    private final DataSource dataSource;
     private final String author = "system";
 
-    private String generateChangeSetId(String key) {
-        return key + Instant.now();
+    @Autowired
+    private LiquibaseUtility liquibaseUtility;
+
+    @Autowired
+    private IRuntimeChangelogRepository runtimeChangelogRepository;
+
+    public void provisionTenant(String tenantId, List<EntityDefinition> coreObjects) throws Exception {
+
+        String changeLogId = this.liquibaseUtility.generateChangeSetId( new ArrayList<>(List.of("initial", tenantId)));
+        DatabaseChangeLog changelog = this.liquibaseUtility.createEmptyChangeLog(changeLogId);
+
+        this.createSchema(tenantId);
+
+        coreObjects.forEach(ed -> {
+            ChangeSet tableChangeSet = this.createTableChangeSet(ed, tenantId, changelog);
+            changelog.addChangeSet(tableChangeSet);
+        });
+
+        this.applyChangeLog(changelog, tenantId);
+
+        RuntimeChangelog runtimeChangelog = RuntimeChangelog.builder().changelogXml(liquibaseUtility.convertChangeLogToXml(changelog)).build();
+        runtimeChangelogRepository.save(runtimeChangelog);
     }
 
-    public ChangeSet createTenantSchema(String tenantId, DatabaseChangeLog changeLog) {
-        String changeSetId = generateChangeSetId("create-tenant-schema-" + tenantId);
+    public void createTable(EntityDefinition entityDefinition, String tenantId) throws Exception {
+        String changeLogId = this.liquibaseUtility.generateChangeSetId(new ArrayList<>(List.of("create", "table", entityDefinition.getEntityId().toString(), entityDefinition.getName(), tenantId)));
+        DatabaseChangeLog changelog = this.liquibaseUtility.createEmptyChangeLog(changeLogId);
 
-        ChangeSet result = new ChangeSet(
-                changeSetId,       // id
-                this.author,       // author
-                false,             // alwaysRun
-                false,             // runOnChange
-                null,              // filePath (optional or set logical path)
-                null,              // context
-                null,              // dbms
-                changeLog          // required DatabaseChangeLog instance
-        );
+        ChangeSet tableChangeSet = this.createTableChangeSet(entityDefinition, tenantId, changelog);
+        changelog.addChangeSet(tableChangeSet);
 
-        // Add your actual change here — for example, create schema:
-        RawSQLChange createSchemaSql = new RawSQLChange();
-        createSchemaSql.setSql("CREATE SCHEMA IF NOT EXISTS \"" + tenantId + "\"");
+        this.applyChangeLog(changelog, tenantId);
 
-        result.addChange(createSchemaSql);
-
-        return result;
+        RuntimeChangelog runtimeChangelog = RuntimeChangelog.builder().changelogXml(liquibaseUtility.convertChangeLogToXml(changelog)).build();
+        runtimeChangelogRepository.save(runtimeChangelog);
     }
 
 
-    public DatabaseChangeLog createEmptyChangeLog(String inputKey) {
-        String filePath = "changelogs/db.changelog-" + inputKey + ".xml";
+    private ChangeSet createTableChangeSet(EntityDefinition entityDefinition, String tenantId, DatabaseChangeLog changeLog) {
+        String changeSetId = liquibaseUtility.generateChangeSetId(new ArrayList<>(List.of("create-table", tenantId, entityDefinition.getName())));
 
-        DatabaseChangeLog result = new DatabaseChangeLog(filePath);
-        result.setPhysicalFilePath(filePath);
-        result.setChangeLogParameters(new liquibase.changelog.ChangeLogParameters());
+        ChangeSet result = this.liquibaseUtility.createNewChangeSet(changeSetId, this.author, changeLog);
 
-        return result;
-    }
-
-    public ChangeSet createTableChangeSet(EntityDefinition entityDefinition, String tenantId, DatabaseChangeLog changeLog) {
-        String changeSetId = generateChangeSetId("create-table-" + tenantId + "-" + entityDefinition.getName());
-
-        ChangeSet result = new ChangeSet(
-                changeSetId,       // id
-                this.author,       // author
-                false,             // alwaysRun
-                false,             // runOnChange
-                null,              // filePath (optional or set logical path)
-                null,              // context
-                null,              // dbms
-                changeLog          // required DatabaseChangeLog instance
-        );
-
-        CreateTableChange createTableChange = new CreateTableChange();
-
-        //Added Table name
-        createTableChange.setTableName(entityDefinition.getName().toLowerCase());
-        createTableChange.setSchemaName(tenantId);
+        CreateTableChange createTableChange = this.liquibaseUtility.createTableChange(entityDefinition.getName().toLowerCase(), tenantId);
 
         for (FieldDefinition fd : entityDefinition.getFields()) {
-            createTableChange.addColumn(createColumnConfig(fd));
+            createTableChange.addColumn(this.createColumnConfig(fd));
         }
-
-        // Add audit columns
-        ColumnConfig createdAtColumn = new ColumnConfig();
-        createdAtColumn.setName("created_at");
-        createdAtColumn.setType("TIMESTAMP");
-        createdAtColumn.setDefaultValueComputed(new DatabaseFunction("CURRENT_TIMESTAMP"));
-        createTableChange.addColumn(createdAtColumn);
-
-        ColumnConfig updatedAtColumn = new ColumnConfig();
-        updatedAtColumn.setName("updated_at");
-        updatedAtColumn.setType("TIMESTAMP");
-        updatedAtColumn.setDefaultValueComputed(new DatabaseFunction("CURRENT_TIMESTAMP"));
-        createTableChange.addColumn(updatedAtColumn);
 
         result.addChange(createTableChange);
 
         return result;
     }
 
-    private String mapFieldDataTypeToSqlType(FieldDefinition.FieldDataType fieldDataType, Integer maxLength) {
-        return switch (fieldDataType) {
-            case TEXT -> {
-                if (maxLength != null && maxLength > 0) {
-                    yield "VARCHAR(" + Math.min(maxLength, 4000) + ")";
-                }
-                yield "VARCHAR(255)";
-            }
-            case NUMBER -> "INTEGER";
-            case DECIMAL -> "DECIMAL(19, 2)";
-            case BOOLEAN -> "BOOLEAN";
-            case DATE -> "DATE";
-            case UUID -> "UUID";
-            case DATETIME -> "TIMESTAMP";
-            case EMAIL, URL, PHONE -> {
-                if (maxLength != null && maxLength > 0) {
-                    yield "VARCHAR(" + Math.min(maxLength, 255) + ")";
-                }
-                yield "VARCHAR(100)";
-            }
-            default -> "VARCHAR(255)";
-        };
+    private void applyChangeLog(DatabaseChangeLog changelog, String tenantId) throws LiquibaseException, SQLException {
+        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()));
+        database.setDefaultSchemaName(tenantId);
+        Liquibase liquibase = new Liquibase(changelog, new ClassLoaderResourceAccessor(), database);
+        liquibase.update(new Contexts(), new LabelExpression());
+
     }
 
-    private ColumnConfig createColumnConfig(FieldDefinition fieldDefinition){
+    private ColumnConfig createColumnConfig(FieldDefinition fieldDefinition) {
         ColumnConfig columnConfig = new ColumnConfig();
+
         columnConfig.setName(fieldDefinition.getName());
-        columnConfig.setType(this.mapFieldDataTypeToSqlType(fieldDefinition.getFieldDataType(), fieldDefinition.getMaxLength()));
+        columnConfig.setType(this.liquibaseUtility.mapFieldDataTypeToSqlType(fieldDefinition.getFieldDataType(), fieldDefinition.getMaxLength()));
+
         ConstraintsConfig constraintsConfig = new ConstraintsConfig();
-        if (fieldDefinition.getFieldType().equals(FieldDefinition.FieldType.PRIMARY_KEY)) {
-            constraintsConfig.setPrimaryKey(true).setNullable(false);
-            if (fieldDefinition.getFieldDataType().equals(FieldDefinition.FieldDataType.NUMBER)) {
+
+        constraintsConfig.setNullable(fieldDefinition.getRequired());
+
+        if (fieldDefinition.getFieldType().equals(FieldType.PRIMARY_KEY)) {
+            constraintsConfig.setPrimaryKey(true);
+            if (fieldDefinition.getFieldDataType().equals(FieldDataType.NUMBER)) {
                 columnConfig.setAutoIncrement(fieldDefinition.getAutoGenerate());
-            } else if (fieldDefinition.getFieldDataType().equals(FieldDefinition.FieldDataType.UUID) && fieldDefinition.getAutoGenerate()) {
+            } else if (fieldDefinition.getFieldDataType().equals(FieldDataType.UUID) && fieldDefinition.getAutoGenerate()) {
                 columnConfig.setDefaultValueComputed(new DatabaseFunction("gen_random_uuid()"));
             }
-        } else if (fieldDefinition.getFieldType().equals(FieldDefinition.FieldType.COLUMN)) {
-            if (Boolean.TRUE.equals(fieldDefinition.getRequired())) {
-                constraintsConfig.setNullable(false);
-            }
+        } else if (fieldDefinition.getFieldType().equals(FieldType.COLUMN)) {
             if (fieldDefinition.getDefaultValue() != null && !fieldDefinition.getDefaultValue().isEmpty()) {
                 columnConfig.setDefaultValue(fieldDefinition.getDefaultValue());
             }
         }
 
-        if (constraintsConfig.isNullable() != null || constraintsConfig.isPrimaryKey() != null) {
-            columnConfig.setConstraints(constraintsConfig);
-        }
-
+        columnConfig.setConstraints(constraintsConfig);
         return columnConfig;
     }
+
+    private void createSchema(String tenantId) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("CREATE SCHEMA IF NOT EXISTS \"" + tenantId + "\"");
+        }
+    }
+
 }
