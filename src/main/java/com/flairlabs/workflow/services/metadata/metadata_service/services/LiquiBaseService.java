@@ -75,24 +75,23 @@ public class LiquiBaseService {
         createTableChange.setSchemaName(tenantId);
 
         for (FieldDefinition fd : entityDefinition.getFields()) {
-            ColumnConfig columnConfig = new ColumnConfig();
-            columnConfig.setName(fd.getName());
-            columnConfig.setType(this.mapFieldDataTypeToSqlType(fd.getFieldDataType(), fd.getMaxLength()));
-            ConstraintsConfig constraintsConfig = new ConstraintsConfig();
-            if (fd.getFieldType().equals(FieldDefinition.FieldType.PRIMARY_KEY)) {
-                constraintsConfig.setPrimaryKey(true);
-                constraintsConfig.setNullable(false);
-                if (fd.getFieldDataType().equals(FieldDefinition.FieldDataType.NUMBER)) {
-                    columnConfig.setAutoIncrement(fd.getAutoGenerate());
-                } else if (fd.getFieldDataType().equals(FieldDefinition.FieldDataType.UUID) && fd.getAutoGenerate()) {
-                    columnConfig.setDefaultValueComputed(new DatabaseFunction("gen_random_uuid()"));
-                }
-                columnConfig.setConstraints(constraintsConfig);
-            } else if (fd.getFieldType().equals(FieldDefinition.FieldType.COLUMN)) {
-                // to be continued
-            }
-
+            createTableChange.addColumn(createColumnConfig(fd));
         }
+
+        // Add audit columns
+        ColumnConfig createdAtColumn = new ColumnConfig();
+        createdAtColumn.setName("created_at");
+        createdAtColumn.setType("TIMESTAMP");
+        createdAtColumn.setDefaultValueComputed(new DatabaseFunction("CURRENT_TIMESTAMP"));
+        createTableChange.addColumn(createdAtColumn);
+
+        ColumnConfig updatedAtColumn = new ColumnConfig();
+        updatedAtColumn.setName("updated_at");
+        updatedAtColumn.setType("TIMESTAMP");
+        updatedAtColumn.setDefaultValueComputed(new DatabaseFunction("CURRENT_TIMESTAMP"));
+        createTableChange.addColumn(updatedAtColumn);
+
+        result.addChange(createTableChange);
 
         return result;
     }
@@ -119,5 +118,33 @@ public class LiquiBaseService {
             }
             default -> "VARCHAR(255)";
         };
+    }
+
+    private ColumnConfig createColumnConfig(FieldDefinition fieldDefinition){
+        ColumnConfig columnConfig = new ColumnConfig();
+        columnConfig.setName(fieldDefinition.getName());
+        columnConfig.setType(this.mapFieldDataTypeToSqlType(fieldDefinition.getFieldDataType(), fieldDefinition.getMaxLength()));
+        ConstraintsConfig constraintsConfig = new ConstraintsConfig();
+        if (fieldDefinition.getFieldType().equals(FieldDefinition.FieldType.PRIMARY_KEY)) {
+            constraintsConfig.setPrimaryKey(true).setNullable(false);
+            if (fieldDefinition.getFieldDataType().equals(FieldDefinition.FieldDataType.NUMBER)) {
+                columnConfig.setAutoIncrement(fieldDefinition.getAutoGenerate());
+            } else if (fieldDefinition.getFieldDataType().equals(FieldDefinition.FieldDataType.UUID) && fieldDefinition.getAutoGenerate()) {
+                columnConfig.setDefaultValueComputed(new DatabaseFunction("gen_random_uuid()"));
+            }
+        } else if (fieldDefinition.getFieldType().equals(FieldDefinition.FieldType.COLUMN)) {
+            if (Boolean.TRUE.equals(fieldDefinition.getRequired())) {
+                constraintsConfig.setNullable(false);
+            }
+            if (fieldDefinition.getDefaultValue() != null && !fieldDefinition.getDefaultValue().isEmpty()) {
+                columnConfig.setDefaultValue(fieldDefinition.getDefaultValue());
+            }
+        }
+
+        if (constraintsConfig.isNullable() != null || constraintsConfig.isPrimaryKey() != null) {
+            columnConfig.setConstraints(constraintsConfig);
+        }
+
+        return columnConfig;
     }
 }
