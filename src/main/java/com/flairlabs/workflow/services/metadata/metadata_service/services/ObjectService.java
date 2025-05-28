@@ -148,7 +148,7 @@ public class ObjectService {
         List<EntityDefinition> initialObjects = new ArrayList<>();
 
         for (EntityRequestDto er: seedObjectsService.getOnProvisonObjects()){
-            //this.validateEntityRequest(er);
+            this.validateEntityRequest(er);
             initialObjects.add(this.entityDefinitionRepository.save(mapperService.toEntityDefinition(er)));
         }
 
