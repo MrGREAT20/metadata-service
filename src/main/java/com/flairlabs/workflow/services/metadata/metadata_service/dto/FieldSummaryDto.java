@@ -24,20 +24,23 @@ public class FieldSummaryDto {
     @JsonProperty("field_data_type")
     private FieldDataType fieldDataType;
 
-    @JsonProperty("field_type")
-    private FieldType fieldType;
+//    @JsonProperty("field_type")
+//    private FieldType fieldType;
 
     @JsonProperty("max_length")
     private Integer maxLength;
 
+    @JsonProperty("is_unique")
+    private Boolean isUnique;
+
     @JsonProperty("auto_generate")
     private Boolean autoGenerate;
 
-    // Only for FOREIGN_KEY
-    @JsonProperty("reference_entity_id")
-    private String referenceEntityId;
-
-    @JsonProperty("reference_field_id")
-    private String referenceFieldId;
+//    // Only for FOREIGN_KEY
+//    @JsonProperty("reference_entity_id")
+//    private String referenceEntityId;
+//
+//    @JsonProperty("reference_field_id")
+//    private String referenceFieldId;
     
 }

@@ -36,16 +36,18 @@
             <column name="field_data_type" type="VARCHAR(50)">
                 <constraints nullable="false" />
             </column>
-            <column name="field_type" type="VARCHAR(50)">
-                <constraints nullable="false" />
-            </column>
+<!--            <column name="field_type" type="VARCHAR(50)">-->
+<!--                <constraints nullable="false" />-->
+<!--            </column>-->
             <column name="required" type="BOOLEAN" />
+            <column name="auto_generate" type="BOOLEAN"/>
+            <column name="is_unique" type="BOOLEAN"/>
             <column name="max_length" type="INT" />
             <column name="default_value" type="TEXT" />
-            <column name="reference_entity_id" type="VARCHAR(255)" />
-            <column name="reference_field_id" type="VARCHAR(255)" />
+<!--            <column name="reference_entity_id" type="VARCHAR(255)" />-->
+<!--            <column name="reference_field_id" type="VARCHAR(255)" />-->
             <column name="tenant_id" type="VARCHAR(255)" />
-            <column name="auto_generate" type="BOOLEAN"/>
+
             <column name="created_at" type="TIMESTAMP" />
             <column name="updated_at" type="TIMESTAMP" />
         </createTable>

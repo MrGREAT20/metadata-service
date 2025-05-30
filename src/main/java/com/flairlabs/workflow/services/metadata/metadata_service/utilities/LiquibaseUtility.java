@@ -1,18 +1,12 @@
 package com.flairlabs.workflow.services.metadata.metadata_service.utilities;
 
-import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition;
 import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldDataType;
-import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
-import liquibase.change.ColumnConfig;
-import liquibase.change.ConstraintsConfig;
-import liquibase.change.core.CreateTableChange;
+import liquibase.change.core.*;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
-import liquibase.database.Database;
 import liquibase.exception.LiquibaseException;
 import liquibase.serializer.ChangeLogSerializer;
 import liquibase.serializer.core.xml.XMLChangeLogSerializer;
-import liquibase.statement.DatabaseFunction;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -53,14 +47,65 @@ public class LiquibaseUtility {
         };
     }
 
-    public ColumnConfig updateColumnConfig(FieldDefinition fieldDefinition){
-        return new ColumnConfig();
-    }
-
     public CreateTableChange createTableChange(String tableName, String schemaName){
         CreateTableChange result = new CreateTableChange();
 
         result.setSchemaName(schemaName);
+        result.setTableName(tableName);
+
+        return result;
+    }
+
+    public RenameColumnChange renameColumnchange(String tableName, String oldColumnName, String newColumnName) {
+        RenameColumnChange result = new RenameColumnChange();
+
+        result.setTableName(tableName);
+        result.setOldColumnName(oldColumnName);
+        result.setNewColumnName(newColumnName);
+
+        return result;
+    }
+
+    public RenameTableChange renameTableChange(String oldTableName, String newTableName) {
+        RenameTableChange result = new RenameTableChange();
+
+        result.setOldTableName(oldTableName);
+        result.setNewTableName(newTableName);
+
+        return result;
+
+    }
+
+    public ModifyDataTypeChange modifyMaxLength(String tableName, String columnName, Integer newMaxLength, FieldDataType dataType, String tenantId) {
+        ModifyDataTypeChange result = new ModifyDataTypeChange();
+
+        result.setSchemaName(tenantId);
+        result.setTableName(tableName);
+        result.setColumnName(columnName);
+        result.setNewDataType(mapFieldDataTypeToSqlType(dataType, newMaxLength));
+
+        return result;
+    }
+
+    public AddDefaultValueChange defaultValueChange(String tableName, String columnName, Object newDefaultValue) {
+        AddDefaultValueChange result = new AddDefaultValueChange();
+
+        result.setTableName(tableName);
+        result.setColumnName(columnName);
+        if (newDefaultValue instanceof Integer) {
+            result.setDefaultValueNumeric(String.valueOf(newDefaultValue));
+        } else if (newDefaultValue instanceof Boolean) {
+            result.setDefaultValueBoolean(Boolean.valueOf(String.valueOf(newDefaultValue)));
+        } else {
+            result.setDefaultValue(newDefaultValue.toString());
+        }
+
+        return result;
+    }
+
+    public AddColumnChange addColumnToTable(String tableName) {
+        AddColumnChange result = new AddColumnChange();
+
         result.setTableName(tableName);
 
         return result;
@@ -101,4 +146,16 @@ public class LiquibaseUtility {
         return outputStream.toString(StandardCharsets.UTF_8);
     }
 
+    public DropColumnChange dropColumnChange(String tableName, String columnName) {
+        DropColumnChange result = new DropColumnChange();
+        result.setTableName(tableName);
+        result.setColumnName(columnName);
+        return result;
+    }
+
+    public DropTableChange dropTableChange(String tableName) {
+        DropTableChange result = new DropTableChange();
+        result.setTableName(tableName);
+        return result;
+    }
 }

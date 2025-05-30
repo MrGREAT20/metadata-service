@@ -5,15 +5,15 @@ import com.flairlabs.workflow.services.metadata.metadata_service.models.EntityDe
 import com.flairlabs.workflow.services.metadata.metadata_service.models.FieldDefinition;
 import com.flairlabs.workflow.services.metadata.metadata_service.repositories.IEntityDefinitionRepository;
 import com.flairlabs.workflow.services.metadata.metadata_service.repositories.IFieldDefinitionRepository;
-import com.flairlabs.workflow.services.metadata.metadata_service.utilities.LiquibaseUtility;
-import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
-
-import liquibase.exception.LiquibaseException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,29 +45,28 @@ public class ObjectService {
             throw new Exception("Duplicate Fields Present");
         }
 
-        if(entityRequestDto.getFields().stream().noneMatch(fd -> fd.getFieldType().equals(FieldType.PRIMARY_KEY))){
-            throw new Exception("Primary Key Field is Required");
-        };
+//        if(entityRequestDto.getFields().stream().noneMatch(fd -> fd.getFieldType().equals(FieldType.PRIMARY_KEY))){
+//            throw new Exception("Primary Key Field is Required");
+//        };
 
-        List<FieldRequestDto> foreignKeys = entityRequestDto.getFields().stream().filter(fd -> fd.getFieldType().equals(FieldType.FOREIGN_KEY)).toList();
+//        List<FieldRequestDto> foreignKeys = entityRequestDto.getFields().stream().filter(fd -> fd.getFieldType().equals(FieldType.FOREIGN_KEY)).toList();
 
-        if(!foreignKeys.isEmpty() && foreignKeys.stream().filter(fd -> fd.getReferenceEntityId() != null).toList().size() < foreignKeys.size()){
-            throw new Exception("Foreign Keys Configuration is Invalid");
-        }
+//        if(!foreignKeys.isEmpty() && foreignKeys.stream().filter(fd -> fd.getReferenceEntityId() != null).toList().size() < foreignKeys.size()){
+//            throw new Exception("Foreign Keys Configuration is Invalid");
+//        }
 
-        List<FieldDefinition> fieldDefinitions = this.fieldDefinitionRepository.findAllById(foreignKeys.stream().map(fd -> UUID.fromString(fd.getReferenceFieldId())).collect(Collectors.toSet()));
-
-        for (FieldRequestDto ft: foreignKeys){
-            Optional<FieldDefinition> fd = fieldDefinitions.stream().filter(e-> ft.getReferenceFieldId() != null && e.getId().equals(UUID.fromString(ft.getReferenceFieldId()))).findFirst();
-
-            if(fd.isEmpty() || !fd.get().getEntity().getEntityId().equals(UUID.fromString(ft.getReferenceEntityId()))){
-                throw new Exception("Foreign Keys Configuration is Invalid");
-            }
-        }
-
-
+//        List<FieldDefinition> fieldDefinitions = this.fieldDefinitionRepository.findAllById(foreignKeys.stream().map(fd -> UUID.fromString(fd.getReferenceFieldId())).collect(Collectors.toSet()));
+//
+//        for (FieldRequestDto ft: foreignKeys){
+//            Optional<FieldDefinition> fd = fieldDefinitions.stream().filter(e-> ft.getReferenceFieldId() != null && e.getId().equals(UUID.fromString(ft.getReferenceFieldId()))).findFirst();
+//
+//            if(fd.isEmpty() || !fd.get().getEntity().getEntityId().equals(UUID.fromString(ft.getReferenceEntityId()))){
+//                throw new Exception("Foreign Keys Configuration is Invalid");
+//            }
+//        }
     }
 
+    @Transactional
     private void validateEntityUpdate(UpdateEntityDto updateEntityDto) throws Exception {
 
         Optional<EntityDefinition> entityDefinition = entityDefinitionRepository.findById(UUID.fromString(updateEntityDto.getEntityId()));
@@ -83,25 +82,17 @@ public class ObjectService {
                     Optional<FieldDefinition> temp = existingFields.stream().filter(fd -> fd.getId().equals(UUID.fromString(uf.getFieldId()))).findFirst();
 
                     if(temp.isPresent()){
-                        if(temp.get().getFieldType().equals(FieldType.COLUMN)){
-
-                            if(uf.getChangeFieldName().isPresent()){
+                        if (uf.getChangeFieldName() != null && uf.getChangeFieldName().isPresent()) {
                                 newLabels.add(uf.getChangeFieldName().get());
                             } else {
                                 newLabels.add(temp.get().getName());
                             }
-
-                            if(uf.getChangeMaxLength().isPresent() && uf.getChangeMaxLength().get() < temp.get().getMaxLength()){
+                        if (uf.getChangeMaxLength() != null && uf.getChangeMaxLength().isPresent() && uf.getChangeMaxLength().get() < temp.get().getMaxLength()) {
                                 throw new Exception("Field Id to update Max length should be greater than existing");
                             }
-
-                        } else {
-                            throw new Exception("Field Id to update should be only column");
-                        }
                     } else {
                         throw new Exception("Field Id to update not present");
                     }
-
                 }
 
                 if(fieldsToAdd.stream().anyMatch(r -> newLabels.contains(r.getFieldName()))){
@@ -114,6 +105,7 @@ public class ObjectService {
 
     }
 
+    @Transactional
     public EntitySummaryDto createEntityDefinition(EntityRequestDto entityRequestDto, String tenantId) throws Exception {
         validateEntityRequest(entityRequestDto);
         EntityDefinition entityDefinition = mapperService.toEntityDefinition(entityRequestDto);
@@ -129,18 +121,51 @@ public class ObjectService {
         return entityDefinitions.stream().map(e -> mapperService.toEntitySummaryDto(e)).toList();
     }
 
-    public EntitySummaryDto updateEntityDefinition(UpdateEntityDto updateEnitityDto) throws Exception {
-        validateEntityUpdate(updateEnitityDto);
-        // UPDATE TABLE
-        return new EntitySummaryDto();
+    @Transactional
+    public EntitySummaryDto updateEntityDefinition(UpdateEntityDto updateEntityDto, String tenantId) throws Exception {
+        validateEntityUpdate(updateEntityDto);
+        this.liquiBaseService.updateTable(updateEntityDto, tenantId);
+
+        EntityDefinition entityDefinition = this.entityDefinitionRepository.findById(UUID.fromString(updateEntityDto.getEntityId())).get();
+
+        if (StringUtils.hasText(updateEntityDto.getUpdatedEntityName())) {
+            entityDefinition.setName(updateEntityDto.getUpdatedEntityName());
+        }
+
+        if (!updateEntityDto.getFieldsToUpdate().isEmpty()) {
+            for (UpdateFieldDto ufd : updateEntityDto.getFieldsToUpdate()) {
+                FieldDefinition field = this.fieldDefinitionRepository.findById(UUID.fromString(ufd.getFieldId())).get();
+
+                if (ufd.getChangeFieldName() != null && ufd.getChangeFieldName().isPresent() && StringUtils.hasText(ufd.getChangeFieldName().get())) {
+                    field.setName(ufd.getChangeFieldName().get());
+                }
+
+                if (ufd.getChangeMaxLength() != null && ufd.getChangeMaxLength().isPresent()) {
+                    field.setMaxLength(ufd.getChangeMaxLength().get());
+                }
+
+                if (ufd.getChangeDefaultValue() != null && ufd.getChangeDefaultValue().isPresent()) {
+                    field.setDefaultValue(String.valueOf(ufd.getChangeDefaultValue().get()));
+                }
+            }
+        }
+
+        if (!updateEntityDto.getFieldsToAdd().isEmpty()) {
+            for (FieldRequestDto fd : updateEntityDto.getFieldsToAdd()) {
+                FieldDefinition addField = this.mapperService.convertToFieldDefinition(fd, entityDefinition);
+                entityDefinition.addField(addField);
+                this.entityDefinitionRepository.save(entityDefinition);
+            }
+        }
+
+        return this.mapperService.toEntitySummaryDto(this.entityDefinitionRepository.findById(UUID.fromString(updateEntityDto.getEntityId())).get());
     }
 
-    public void deleteEntity(Optional<String> entityId, Optional<String> entityName){
-
-    }
-
-    public void deleteField(Optional<String> fieldId, Optional<String> fieldName){
-
+    public void deleteEntity(String entityId, String tenantId) throws Exception {
+        Optional<EntityDefinition> entityDefinition = entityDefinitionRepository.findById(UUID.fromString(entityId));
+        String tableName = entityDefinition.get().getName();
+        this.liquiBaseService.deleteTable(tableName, tenantId);
+        this.entityDefinitionRepository.delete(entityDefinition.get());
     }
 
     public void provisionTenant(String tenantId) throws Exception {
@@ -153,6 +178,31 @@ public class ObjectService {
         }
 
         this.liquiBaseService.provisionTenant(tenantId, initialObjects);
+    }
+
+    public void deleteFieldsFromEntity(String entityId, List<String> fieldIds, String tenantId) throws Exception {
+        EntityDefinition entityDefinition = entityDefinitionRepository.findById(UUID.fromString(entityId)).orElseThrow(() -> new IllegalArgumentException("Entity not found for id: " + entityId));
+        String tableName = entityDefinition.getName();
+
+        List<String> fieldsToDelete = new ArrayList<>();
+        List<FieldDefinition> fieldDefinitionsToRemove = new ArrayList<>();
+
+        for (String fieldId : fieldIds) {
+            FieldDefinition fieldDefinition = fieldDefinitionRepository.findById(UUID.fromString(fieldId)).orElseThrow(() -> new IllegalArgumentException("Field not found for id: " + fieldId));
+            String fieldName = fieldDefinition.getName();
+            fieldsToDelete.add(fieldName);
+            fieldDefinitionsToRemove.add(fieldDefinition);
+        }
+
+        this.liquiBaseService.deleteFieldsFromTable(tableName, fieldsToDelete, tenantId);
+
+        // Then update the entity model
+        for (FieldDefinition fieldToRemove : fieldDefinitionsToRemove) {
+            entityDefinition.removeField(fieldToRemove);
+        }
+
+        // Save updated entity
+        entityDefinitionRepository.save(entityDefinition);
 
     }
 }

@@ -49,18 +49,19 @@ public class MapperService {
 
     //helper
 
-    private FieldDefinition convertToFieldDefinition(FieldRequestDto fieldDto, EntityDefinition entityDefinition) {
+    public FieldDefinition convertToFieldDefinition(FieldRequestDto fieldDto, EntityDefinition entityDefinition) {
         return FieldDefinition.builder()
                 .entity(entityDefinition)
                 .name(fieldDto.getFieldName())
                 .fieldDataType(fieldDto.getFieldDataType())
-                .fieldType(fieldDto.getFieldType())
+//                .fieldType(fieldDto.getFieldType())
                 .required(fieldDto.getRequired())
+                .autoGenerate(fieldDto.getAutoGenerate())
+                .isUnique(fieldDto.getIsUnique())
                 .maxLength(fieldDto.getMaxLength())
                 .defaultValue(fieldDto.getDefaultValue())
-                .autoGenerate(fieldDto.getAutoGenerate())
-                .referenceEntityId(fieldDto.getReferenceEntityId())
-                .referenceFieldId(fieldDto.getReferenceFieldId())
+//                .referenceEntityId(fieldDto.getReferenceEntityId())
+//                .referenceFieldId(fieldDto.getReferenceFieldId())
                 .build();
     }
 
@@ -69,10 +70,11 @@ public class MapperService {
                 fieldDefinition.getId().toString(),
                 fieldDefinition.getName(),
                 fieldDefinition.getFieldDataType(),
-                fieldDefinition.getFieldType(),
+//                fieldDefinition.getFieldType(),
                 fieldDefinition.getMaxLength(),
-                fieldDefinition.getAutoGenerate(),
-                fieldDefinition.getReferenceEntityId(),
-                fieldDefinition.getReferenceFieldId());
+                fieldDefinition.getIsUnique(),
+                fieldDefinition.getAutoGenerate());
+//                fieldDefinition.getReferenceEntityId(),
+//                fieldDefinition.getReferenceFieldId());
     }
 }

@@ -3,7 +3,9 @@ package com.flairlabs.workflow.services.metadata.metadata_service.models;
 import com.flairlabs.workflow.services.metadata.metadata_service.multitenant.TenantBaseModel;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -21,4 +23,11 @@ public class RuntimeChangelog extends TenantBaseModel {
 
     @Column(name = "changelog_xml")
     private String changelogXml;
+
+    @Column(name = "description")
+    private String description;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

@@ -49,15 +49,18 @@ public class FieldDefinition extends TenantBaseModel {
     @Enumerated(EnumType.STRING)
     private FieldDataType fieldDataType;
 
-    @Column(name = "field_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private FieldType fieldType;
+//    @Column(name = "field_type", nullable = false)
+//    @Enumerated(EnumType.STRING)
+//    private FieldType fieldType;
 
     @Column(name = "required")
     private Boolean required;
 
     @Column(name = "auto_generate")
     private Boolean autoGenerate;
+
+    @Column(name = "is_unique")
+    private Boolean isUnique;
 
     @Column(name = "max_length")
     private Integer maxLength;
@@ -73,13 +76,10 @@ public class FieldDefinition extends TenantBaseModel {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Only for FOREIGN_KEY
-    @Column(name = "reference_entity_id")
-    private String referenceEntityId;
+//    // Only for FOREIGN_KEY
+//    @Column(name = "reference_entity_id")
+//    private String referenceEntityId;
 
-    @Column(name = "reference_field_id")
-    private String referenceFieldId;
-
-   
-
+//    @Column(name = "reference_field_id")
+//    private String referenceFieldId;
 }

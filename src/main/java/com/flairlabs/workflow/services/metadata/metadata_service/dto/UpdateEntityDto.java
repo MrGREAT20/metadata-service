@@ -19,7 +19,7 @@ public class UpdateEntityDto {
     private String entityId;
 
     @JsonProperty("updated_entity_name")
-    private String updatedEnityName;
+    private String updatedEntityName;
 
     @JsonProperty("fields_to_update")
     private List<UpdateFieldDto> fieldsToUpdate;

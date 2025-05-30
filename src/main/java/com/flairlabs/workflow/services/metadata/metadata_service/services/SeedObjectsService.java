@@ -19,20 +19,20 @@ public class SeedObjectsService {
     public List<EntityRequestDto> getOnProvisonObjects(){
         List<EntityRequestDto> results = new ArrayList<>();
 
-        FieldRequestDto leadsIdTable = new FieldRequestDto();
-        leadsIdTable.setFieldName("id");
-        leadsIdTable.setFieldType(FieldType.PRIMARY_KEY);
-        leadsIdTable.setFieldDataType(FieldDataType.UUID);
-        leadsIdTable.setAutoGenerate(true);
-        leadsIdTable.setRequired(true);
+//        FieldRequestDto leadsIdTable = new FieldRequestDto();
+//        leadsIdTable.setFieldName("id");
+////        leadsIdTable.setFieldType(FieldType.PRIMARY_KEY);
+//        leadsIdTable.setFieldDataType(FieldDataType.UUID);
+//        leadsIdTable.setAutoGenerate(true);
+//        leadsIdTable.setRequired(true);
 
         FieldRequestDto leadsNameTable = new FieldRequestDto();
         leadsNameTable.setFieldName("name");
-        leadsNameTable.setFieldType(FieldType.COLUMN);
+//        leadsNameTable.setFieldType(FieldType.COLUMN);
         leadsNameTable.setFieldDataType(FieldDataType.TEXT);
         leadsNameTable.setRequired(true);
 
-        EntityRequestDto leads = new EntityRequestDto("leads", "This is a core table", Arrays.asList(leadsIdTable, leadsNameTable), EntityType.CORE);
+        EntityRequestDto leads = new EntityRequestDto("leads", "This is a core table", Arrays.asList(leadsNameTable), EntityType.CORE);
         results.add(leads);
         return results;
     }

@@ -6,11 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldDataType;
 import com.flairlabs.workflow.services.metadata.metadata_service.utilities.enums.FieldType;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,14 +21,17 @@ public class FieldRequestDto {
     @JsonProperty("field_data_type")
     private FieldDataType fieldDataType;
 
-    @JsonProperty("field_type")
-    private FieldType fieldType;
-
+    @Builder.Default
     @JsonProperty("required")
-    private Boolean required;
+    private Boolean required = false;
 
+    @Builder.Default
+    @JsonProperty("is_unique")
+    private Boolean isUnique = false;;
+
+    @Builder.Default
     @JsonProperty("auto_generate")
-    private Boolean autoGenerate;
+    private Boolean autoGenerate = false;
 
     @JsonProperty("max_length")
     private Integer maxLength;
@@ -38,10 +39,14 @@ public class FieldRequestDto {
     @JsonProperty("default_value")
     private String defaultValue;
 
-    // Only for FOREIGN_KEY
-    @JsonProperty("reference_entity_id")
-    private String referenceEntityId;
+    //    @JsonProperty("field_type")
+//    private FieldType fieldType;
 
-    @JsonProperty("reference_field_id")
-    private String referenceFieldId;
+    // Only for FOREIGN_KEY
+//    @JsonProperty("reference_entity_id")
+//    private String referenceEntityId;
+//
+//    @JsonProperty("reference_field_id")
+//    private String referenceFieldId;
 }
+
